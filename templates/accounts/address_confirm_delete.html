@@ -1,0 +1,16 @@
+{% extends "base/base.html" %}
+
+{% block title %}Eliminar dirección — the weekend store{% endblock %}
+{% block header_class %}on-light{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>eliminar dirección</h1>
+  <p>¿Seguro que deseas eliminar la dirección <b>{{ address.full_name }} — {{ address.line1 }}</b>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn-primary" style="width:auto;background:#b3261e;border-color:#b3261e;">sí, eliminar</button>
+    <a href="{% url 'accounts:profile' %}" class="btn-secondary" style="margin-left:10px;">cancelar</a>
+  </form>
+</div>
+{% endblock %}

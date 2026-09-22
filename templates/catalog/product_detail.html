@@ -1,0 +1,77 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ product.name }} — the weekend store{% endblock %}
+
+{% block content %}
+<div class="pdp">
+  <div class="pdp-gallery">
+    {% with fallback_image=product.primary_image %}
+      <img
+        data-variant-image
+        src="{% if default_variant.image %}{{ default_variant.image.url }}{% elif fallback_image %}{{ fallback_image.image.url }}{% else %}https://ext.same-assets.com/2333917560/3016023437.jpeg{% endif %}"
+        alt="{{ product.name }}"
+        data-fallback-src="{% if fallback_image %}{{ fallback_image.image.url }}{% else %}https://ext.same-assets.com/2333917560/3016023437.jpeg{% endif %}"
+      />
+    {% endwith %}
+  </div>
+  <div class="pdp-info">
+    <p class="eyebrow">{{ product.category.name|lower }}</p>
+    <h1>{{ product.name|lower }}</h1>
+    <p class="pdp-price" data-variant-price>
+      ${% if default_variant %}{{ default_variant.price|floatformat:2 }}{% else %}{{ product.base_price|floatformat:2 }}{% endif %}
+    </p>
+    <p class="pdp-description" data-variant-description>
+      {% if default_variant %}{{ default_variant.description }}{% else %}{{ product.description|default:product.short_description }}{% endif %}
+    </p>
+
+    {% if variants %}
+      <p class="eyebrow">variantes</p>
+      <div class="variant-buttons" role="group" aria-label="Elegir variante">
+        {% for variant in variants %}
+          <button
+            type="button"
+            class="variant-btn {% if variant == default_variant %}active{% endif %} {% if not variant.is_in_stock %}out{% endif %}"
+            data-variant-select
+            data-sku="{{ variant.sku }}"
+            data-price="{{ variant.price|floatformat:2 }}"
+            data-in-stock="{% if variant.is_in_stock %}true{% else %}false{% endif %}"
+            data-stock-label="{% if variant.is_in_stock %}{{ variant.stock_quantity }} unidades disponibles{% else %}sin stock disponible{% endif %}"
+            data-stock-class="{% if not variant.is_in_stock %}out{% elif variant.is_low_stock %}low{% else %}ok{% endif %}"
+            data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}"
+            data-description="{{ variant.description }}"
+            {% if not variant.is_in_stock %}aria-disabled="true"{% endif %}
+          >
+            <span class="variant-btn-label">{{ variant.label }}</span>
+            <span class="variant-btn-stock">{% if variant.is_in_stock %}{{ variant.stock_quantity }} disp.{% else %}agotado{% endif %}</span>
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <span
+      class="stock-flag {% if default_variant %}{% if not default_variant.is_in_stock %}out{% elif default_variant.is_low_stock %}low{% else %}ok{% endif %}{% elif product.is_purchasable %}ok{% else %}out{% endif %}"
+      data-variant-stock
+    >
+      {% if default_variant %}
+        {% if default_variant.is_in_stock %}{{ default_variant.stock_quantity }} unidades disponibles{% else %}sin stock disponible{% endif %}
+      {% elif product.is_purchasable %}
+        {{ product.total_stock }} unidades disponibles
+      {% else %}
+        sin stock disponible
+      {% endif %}
+    </span>
+
+    <div>
+      <button type="button" class="btn-primary" style="width:auto;margin-top:22px;" disabled title="El carrito estará disponible en la próxima etapa (M06)">
+        añadir al carrito
+      </button>
+    </div>
+
+    <div class="pdp-cta-note">
+      El carrito y el checkout llegan en la próxima etapa del proyecto (M06–M12).
+      Por ahora esta vista muestra el catálogo real conectado a PostgreSQL:
+      categoría, precio, variantes, imagen por variante y disponibilidad.
+    </div>
+  </div>
+</div>
+{% endblock %}

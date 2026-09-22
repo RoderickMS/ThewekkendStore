@@ -1,0 +1,23 @@
+{% extends "base/base.html" %}
+
+{% block title %}Panel administrativo — the weekend store{% endblock %}
+
+{% block content %}
+<div class="panel-admin">
+  <h1>panel administrativo</h1>
+  <p class="panel-note" style="text-transform:none;">
+    Hola {{ user.first_name|default:user.username }} — esta pantalla solo es
+    visible para usuarios con rol Administrador (M09/T05). El dashboard
+    completo (ventas, pedidos, bajo stock) llega en la Etapa 4 (M20).
+  </p>
+  <div class="stat-grid">
+    <div class="stat-card"><b>{{ stats.total_categories }}</b><span>categorías</span></div>
+    <div class="stat-card"><b>{{ stats.total_products }}</b><span>productos</span></div>
+    <div class="stat-card"><b>{{ stats.active_products }}</b><span>productos activos</span></div>
+  </div>
+  <p style="margin-top:30px;font-size:12px;">
+    Gestión completa de categorías, productos, variantes e inventario:
+    <a href="/admin/" style="text-decoration:underline;">ir al administrador de Django →</a>
+  </p>
+</div>
+{% endblock %}

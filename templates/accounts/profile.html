@@ -1,0 +1,44 @@
+{% extends "base/base.html" %}
+
+{% block title %}Mi perfil — the weekend store{% endblock %}
+{% block header_class %}on-light{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>mi cuenta</h1>
+
+  <div class="account-section">
+    <h2>datos personales</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        {% include "accounts/_form_field_helpers.html" %}
+      {% endfor %}
+      <button type="submit" class="btn-primary" style="width:auto;">guardar cambios</button>
+    </form>
+    <p style="margin-top:16px;">
+      <a href="{% url 'accounts:password_change' %}" class="btn-secondary">cambiar contraseña</a>
+    </p>
+  </div>
+
+  <div class="account-section">
+    <h2>direcciones</h2>
+    {% for address in addresses %}
+      <div class="address-card">
+        <div>
+          <b>{{ address.full_name }}</b>{% if address.is_default %}<span class="badge">predeterminada</span>{% endif %}<br />
+          {{ address.line1 }}{% if address.line2 %}, {{ address.line2 }}{% endif %}<br />
+          {{ address.city }}{% if address.state %}, {{ address.state }}{% endif %} — {{ address.country }}
+        </div>
+        <div class="address-actions">
+          <a href="{% url 'accounts:address_update' address.pk %}">editar</a>
+          <a href="{% url 'accounts:address_delete' address.pk %}">eliminar</a>
+        </div>
+      </div>
+    {% empty %}
+      <p style="font-size:12px;opacity:.7;">Aún no tienes direcciones guardadas.</p>
+    {% endfor %}
+    <a href="{% url 'accounts:address_create' %}" class="btn-secondary" style="margin-top:10px;display:inline-block;">agregar dirección</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#49322a" />
+  <meta name="description" content="{% block meta_description %}The Weekend Store — comercio electrónico con catálogo, inventario y pedidos reales, con la estética editorial de Rhode.{% endblock %}" />
+  <title>{% block title %}the weekend store{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="announcement">
+    <div class="marquee">
+      {% for i in "12" %}
+        <span>envío gratis en pedidos mayores a $45</span>
+        <span>descuento del 70% en skincare en compras superiores a $500 todos los lunes</span>
+        <span>2x1 los jueves de 7:00 pm a 8:00 pm</span>
+        <span>actualizaciones de productos los domingos</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <header class="site-header {% block header_class %}on-light{% endblock %}">
+    <button type="button" class="mobile-menu-trigger" data-open-panel="menu">menu</button>
+    <nav class="nav-left" aria-label="Navegación principal">
+      {% for category in nav_categories %}
+        <a href="{% url 'catalog:category_detail' category.slug %}">{{ category.name|lower }}</a>
+      {% endfor %}
+      <a href="{% url 'catalog:home' %}#about">nosotros</a>
+    </nav>
+    <a href="{% url 'catalog:home' %}" class="wordmark" aria-label="The Weekend Store — inicio">the weekend store</a>
+    <nav class="nav-right" aria-label="Utilidades">
+      <button type="button" data-open-panel="search">buscar</button>
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="desktop-only">{{ user.first_name|default:user.username }}</a>
+        {% if user.is_admin_role %}<a href="{% url 'catalog:panel_home' %}" class="desktop-only">panel</a>{% endif %}
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="desktop-only">ingresar</a>
+      {% endif %}
+      <a href="#" title="El carrito estará disponible en la próxima etapa" onclick="return false;">carrito</a>
+    </nav>
+  </header>
+
+  {% if messages %}
+    <ul class="messages" style="max-width:700px;margin:0 auto;padding:16px 20px 0;">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="footer">
+    <div class="newsletter">
+      <p>únete a la comunidad</p>
+      <h2>brilla este finde.</h2>
+      <form onsubmit="return false;">
+        <label for="newsletter-email">Correo electrónico</label>
+        <input id="newsletter-email" type="email" placeholder="tucorreo@email.com" />
+        <button type="submit" aria-label="Suscribirse" title="Disponible próximamente">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h15M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.3" /></svg>
+        </button>
+      </form>
+    </div>
+    <div class="footer-links">
+      <div>
+        <p>tienda</p>
+        {% for category in nav_categories %}
+          <a href="{% url 'catalog:category_detail' category.slug %}">{{ category.name|lower }}</a>
+        {% endfor %}
+      </div>
+      <div>
+        <p>cuenta</p>
+        {% if user.is_authenticated %}
+          <a href="{% url 'accounts:profile' %}">mi perfil</a>
+          <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit">cerrar sesión</button></form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">ingresar</a>
+          <a href="{% url 'accounts:register' %}">crear cuenta</a>
+        {% endif %}
+      </div>
+      <div>
+        <p>ayuda</p>
+        <a href="{% url 'catalog:home' %}#footer">contacto</a>
+        <a href="{% url 'catalog:home' %}#footer">envíos</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© the weekend store 2026</span>
+      <span>privacidad · términos · accesibilidad</span>
+      <span>panamá / usd</span>
+    </div>
+    <div class="footer-wordmark">the weekend store</div>
+  </footer>
+
+  <div class="overlay" data-overlay></div>
+
+  <aside class="panel menu-panel" data-panel="menu" aria-hidden="true">
+    <div class="panel-head">
+      <span>menu</span>
+      <button type="button" aria-label="Cerrar menú" data-close-panel>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
+      </button>
+    </div>
+    <nav>
+      {% for category in nav_categories %}
+        <a href="{% url 'catalog:category_detail' category.slug %}" data-close-panel>{{ category.name|lower }} <span>{{ forloop.counter|stringformat:"02d" }}</span></a>
+      {% endfor %}
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" data-close-panel>mi cuenta <span>·</span></a>
+        {% if user.is_admin_role %}<a href="{% url 'catalog:panel_home' %}" data-close-panel>panel admin <span>·</span></a>{% endif %}
+        <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit" data-close-panel>cerrar sesión <span>·</span></button></form>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" data-close-panel>ingresar <span>·</span></a>
+        <a href="{% url 'accounts:register' %}" data-close-panel>crear cuenta <span>·</span></a>
+      {% endif %}
+    </nav>
+    <p class="panel-note">the weekend store — one of everything really good.</p>
+  </aside>
+
+  <aside class="panel search-panel" data-panel="search" aria-hidden="true">
+    <div class="panel-head">
+      <span>buscar</span>
+      <button type="button" aria-label="Cerrar búsqueda" data-close-panel>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
+      </button>
+    </div>
+    <div class="search-results">
+      <p>La búsqueda por palabra clave llega en la próxima etapa. Por ahora puedes explorar las categorías desde el menú.</p>
+    </div>
+  </aside>
+
+  <script src="{% static 'js/site.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

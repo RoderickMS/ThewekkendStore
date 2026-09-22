@@ -1,0 +1,12 @@
+{% extends "base/base.html" %}
+
+{% block title %}Acceso restringido — the weekend store{% endblock %}
+{% block header_class %}on-light{% endblock %}
+
+{% block content %}
+<div class="account-page" style="text-align:center;">
+  <h1>403 — acceso restringido</h1>
+  <p>No tienes permisos de administrador para ver esta página. Si crees que esto es un error, contacta al equipo de The Weekend Store.</p>
+  <a href="{% url 'catalog:home' %}" class="btn-secondary">volver al inicio</a>
+</div>
+{% endblock %}
