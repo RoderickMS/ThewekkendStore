@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -65,19 +64,133 @@
     );
   });
 
-  // Selector de variante en la vista de producto (botones): actualiza
-  // precio, stock e imagen mostrada. Solo es UI — la validación real de
-  // stock ocurre en servidor cuando se conecte el carrito, por eso el botón de "añadir al carrito" sigue deshabilitado.
+  // Búsqueda (M10): sugerencias en el panel. Sin JS el formulario sigue
+  // funcionando con un GET normal a catalog:search.
+  const searchInput = document.querySelector("[data-search-input]");
+  const suggestionsBox = document.querySelector("[data-search-suggestions]");
+
+  if (searchInput && suggestionsBox) {
+    const MIN_LENGTH = 2;
+    const DEBOUNCE_MS = 250;
+    let timer = null;
+    let controller = null;
+
+    function showMessage(text) {
+      const p = document.createElement("p");
+      p.textContent = text;
+      suggestionsBox.replaceChildren(p);
+    }
+
+    function renderSuggestions(results, query) {
+      if (!results.length) {
+        showMessage(`No encontramos resultados para “${query}”.`);
+        return;
+      }
+      const list = document.createElement("ul");
+      list.className = "search-suggestion-list";
+      results.forEach((item) => {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.className = "search-suggestion";
+        link.href = item.url;
+        if (item.image) {
+          const img = document.createElement("img");
+          img.src = item.image;
+          img.alt = "";
+          link.appendChild(img);
+        }
+        const text = document.createElement("span");
+        text.className = "search-suggestion-text";
+        const name = document.createElement("strong");
+        name.textContent = item.name.toLowerCase();
+        const meta = document.createElement("small");
+        meta.textContent = `${item.category.toLowerCase()} · $${item.price}`;
+        text.append(name, meta);
+        link.appendChild(text);
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+      const all = document.createElement("a");
+      all.className = "search-view-all";
+      all.href = `${searchInput.form.action}?q=${encodeURIComponent(query)}`;
+      all.textContent = "ver todos los resultados";
+      suggestionsBox.replaceChildren(list, all);
+    }
+
+    async function fetchSuggestions(query) {
+      if (controller) controller.abort();
+      controller = new AbortController();
+      try {
+        const response = await fetch(
+          `${searchInput.dataset.suggestUrl}?q=${encodeURIComponent(query)}`,
+          { signal: controller.signal, headers: { "X-Requested-With": "XMLHttpRequest" } }
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        renderSuggestions(data.results, query);
+      } catch (error) {
+        if (error.name !== "AbortError") suggestionsBox.replaceChildren();
+      }
+    }
+
+    searchInput.addEventListener("input", () => {
+      clearTimeout(timer);
+      const query = searchInput.value.trim();
+      if (query.length < MIN_LENGTH) {
+        if (controller) controller.abort();
+        suggestionsBox.replaceChildren();
+        return;
+      }
+      timer = setTimeout(() => fetchSuggestions(query), DEBOUNCE_MS);
+    });
+  }
+
+  // Selector de variante en la vista de producto (M11): actualiza precio,
+  // stock, imagen, descripción y el formulario del carrito (variant_id,
+  // cantidad máxima y botón). Es solo UI: la validación real de stock
+  // ocurre en el servidor (carrito).
   const variantButtons = document.querySelectorAll("[data-variant-select]");
   const priceTarget = document.querySelector("[data-variant-price]");
   const stockTarget = document.querySelector("[data-variant-stock]");
   const imageTarget = document.querySelector("[data-variant-image]");
   const descriptionTarget = document.querySelector("[data-variant-description]");
+  const variantIdInput = document.querySelector("[data-variant-id-input]");
+  const quantityInput = document.querySelector("[data-quantity-input]");
+  const addButton = document.querySelector("[data-add-button]");
+
+  function clampQuantity() {
+    if (!quantityInput || quantityInput.disabled) return;
+    const max = parseInt(quantityInput.max, 10) || 1;
+    const current = parseInt(quantityInput.value, 10);
+    quantityInput.value = Number.isNaN(current) ? 1 : Math.min(Math.max(current, 1), max);
+  }
+
+  function syncAddForm(button) {
+    const inStock = button.dataset.inStock === "true";
+    const maxQty = parseInt(button.dataset.maxQty, 10) || 0;
+    if (variantIdInput) variantIdInput.value = button.dataset.variantId;
+    if (quantityInput) {
+      quantityInput.disabled = !inStock;
+      quantityInput.max = inStock ? maxQty : 1;
+      clampQuantity();
+    }
+    if (addButton) {
+      const cartReady = addButton.dataset.cartReady === "true";
+      addButton.disabled = !inStock || !cartReady;
+      addButton.textContent = inStock ? "añadir al carrito" : "agotado";
+    }
+  }
+
+  if (quantityInput) quantityInput.addEventListener("change", clampQuantity);
 
   variantButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      variantButtons.forEach((btn) => btn.classList.remove("active"));
+      variantButtons.forEach((btn) => {
+        btn.classList.remove("active");
+        btn.setAttribute("aria-pressed", "false");
+      });
       button.classList.add("active");
+      button.setAttribute("aria-pressed", "true");
 
       if (priceTarget && button.dataset.price) {
         priceTarget.textContent = `$${button.dataset.price}`;
@@ -93,6 +206,7 @@
       if (descriptionTarget && button.dataset.description) {
         descriptionTarget.textContent = button.dataset.description;
       }
+      syncAddForm(button);
     });
   });
 })();

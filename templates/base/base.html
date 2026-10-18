@@ -127,9 +127,13 @@
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
       </button>
     </div>
-    <div class="search-results">
-      <p>La búsqueda por palabra clave llega en la próxima etapa. Por ahora puedes explorar las categorías desde el menú.</p>
-    </div>
+    <form class="search-field" action="{% url 'catalog:search' %}" method="get" role="search">
+      <input type="search" name="q" placeholder="buscar productos" aria-label="Buscar productos"
+             autocomplete="off" minlength="2" required
+             data-search-input data-suggest-url="{% url 'catalog:search_suggestions' %}" />
+      <button type="submit">buscar</button>
+    </form>
+    <div class="search-results" data-search-suggestions aria-live="polite"></div>
   </aside>
 
   <script src="{% static 'js/site.js' %}"></script>

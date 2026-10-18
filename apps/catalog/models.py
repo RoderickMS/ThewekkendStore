@@ -103,7 +103,7 @@ class Product(models.Model):
 
     @property
     def total_stock(self) -> int:
-        return sum(v.stock_quantity for v in self.variants.filter(is_active=True))
+        return sum(v.stock_quantity for v in self.variants.all() if v.is_active)
 
     @property
     def is_purchasable(self) -> bool:
