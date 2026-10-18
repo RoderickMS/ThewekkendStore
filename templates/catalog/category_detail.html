@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ category.name }} — the weekend store{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <p class="breadcrumbs"><a href="{% url 'catalog:home' %}">inicio</a> / {{ category.name|lower }}</p>
+  <h1>{{ category.name|lower }}</h1>
+</div>
+
+<section class="products-section" style="padding-top:0;">
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        {% include "catalog/_product_card.html" with product=product %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>Todavía no hay productos activos en esta categoría.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

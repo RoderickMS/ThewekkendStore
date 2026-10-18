@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+
+{% block title %}Ingresar — the weekend store{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>ingresar</h1>
+    <p class="subtitle">Accede a tu cuenta de the weekend store.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        {% include "accounts/_form_field_helpers.html" %}
+      {% endfor %}
+      {% if form.non_field_errors %}
+        <ul class="errorlist">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+      <button type="submit" class="btn-primary">entrar</button>
+    </form>
+    <p class="auth-links">
+      <a href="{% url 'accounts:password_reset' %}">¿olvidaste tu contraseña?</a><br />
+      ¿no tienes cuenta? <a href="{% url 'accounts:register' %}">crear cuenta</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

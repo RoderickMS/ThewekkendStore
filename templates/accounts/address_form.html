@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+
+{% block title %}{% if is_new %}Nueva dirección{% else %}Editar dirección{% endif %} — the weekend store{% endblock %}
+{% block header_class %}on-light{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>{% if is_new %}nueva dirección{% else %}editar dirección{% endif %}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      {% include "accounts/_form_field_helpers.html" %}
+    {% endfor %}
+    <button type="submit" class="btn-primary" style="width:auto;">guardar dirección</button>
+    <a href="{% url 'accounts:profile' %}" class="btn-secondary" style="margin-left:10px;">cancelar</a>
+  </form>
+</div>
+{% endblock %}

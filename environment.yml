@@ -1,0 +1,23 @@
+# Entorno conda para The Weekend Store (Django + PostgreSQL).
+#
+# Crear el entorno:
+#   conda env create -f environment.yml
+# Activarlo:
+#   conda activate the_weekend_store
+# Actualizarlo tras cambios en este archivo:
+#   conda env update -f environment.yml --prune
+name: the_weekend_store
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - postgresql=16        # incluye psql/libpq; útil para trabajar en local sin instalar Postgres aparte
+  - pip:
+      - Django>=5.1,<5.2
+      - psycopg2-binary>=2.9
+      - Pillow>=10.0
+      - django-environ>=0.11
+      - whitenoise>=6.6      # servir estáticos en modo simple
+      - reportlab>=4.0       # S02 comprobante/factura en PDF (etapa posterior)

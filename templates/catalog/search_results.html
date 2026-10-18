@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+
+{% block title %}{% if query %}{{ query }} — búsqueda{% else %}buscar{% endif %} — the weekend store{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <p class="breadcrumbs"><a href="{% url 'catalog:home' %}">inicio</a> / búsqueda</p>
+    <h1>{% if query %}resultados para “{{ query }}”{% else %}buscar{% endif %}</h1>
+    {% if page_obj and page_obj.paginator.count %}
+    <p class="search-note">{{ page_obj.paginator.count }} producto{{ page_obj.paginator.count|pluralize }}</p>
+    {% endif %}
+</div>
+
+<section class="products-section" style="padding-top:0;">
+    <form class="search-form" action="{% url 'catalog:search' %}" method="get" role="search">
+        <input type="search" name="q" value="{{ query }}" placeholder="buscar productos" aria-label="Buscar productos"
+            autocomplete="off" />
+        <button type="submit">buscar</button>
+    </form>
+
+    {% if too_short %}
+    <div class="empty-state">
+        <p>Escribe al menos {{ min_length }} caracteres para buscar.</p>
+    </div>
+    {% elif page_obj %}
+    {% if page_obj.paginator.count %}
+    <div class="product-grid">
+        {% for product in page_obj %}
+        {% include "catalog/_product_card.html" with product=product %}
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="pagination" aria-label="Paginación">
+        {% if page_obj.has_previous %}
+        <a href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">← anterior</a>
+        {% endif %}
+        <span>página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">siguiente →</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>No encontramos productos para “{{ query }}”. Prueba con otra palabra o explora las categorías del menú.</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>Escribe lo que buscas: nombre, categoría o variante.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

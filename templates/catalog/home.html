@@ -1,0 +1,72 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}the weekend store — one of everything really good{% endblock %}
+{% block header_class %}{% endblock %}
+
+{% block content %}
+<main>
+  <section id="top" class="hero">
+    <div class="hero-image hero-image-left"></div>
+    <div class="hero-image hero-image-right"></div>
+    <div class="hero-copy">
+      <p>catálogo, inventario y pedidos reales</p>
+      <h1>The Weekend<br />Store.</h1>
+      <a class="text-link light" href="#shop">ver colección <span>→</span></a>
+    </div>
+    <span class="swipe-label">desliza</span>
+  </section>
+
+  <section id="shop" class="products-section">
+    <div class="section-heading">
+      <h2>la colección</h2>
+      <div class="rail-controls">
+        <button type="button" aria-label="Anteriores" data-rail-prev="home">
+          <svg aria-hidden="true" viewBox="0 0 24 24" class="flip"><path d="M4 12h15M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.3" /></svg>
+        </button>
+        <button type="button" aria-label="Siguientes" data-rail-next="home">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h15M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.3" /></svg>
+        </button>
+      </div>
+    </div>
+
+    {% if featured_products %}
+      <div class="product-rail" data-rail="home">
+        {% for product in featured_products %}
+          {% include "catalog/_product_card.html" with product=product %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Aún no hay productos publicados. Agrégalos desde el panel administrativo (<code>/admin/</code>).</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section id="about" class="manifesto">
+    <div class="manifesto-image"></div>
+    <div class="manifesto-copy">
+      <p class="eyebrow">nuestra filosofía</p>
+      <h2>uno de cada cosa,<br />bien hecho</h2>
+      <p class="body-copy">En The Weekend Store creemos en tener uno de cada cosa, pero que valga la pena. Una colección intencional de esenciales que usas todos los días, con control real de inventario y pedidos: sabes exactamente qué hay disponible cuando lo necesitas.</p>
+      <a href="#shop" class="pill-link">ver colección
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h15M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.3" /></svg>
+      </a>
+    </div>
+  </section>
+
+  <section id="futures" class="social">
+    <div class="social-heading">
+      <h2>tú + the weekend store</h2>
+      <a href="#footer">síguenos ↗</a>
+    </div>
+    <div class="social-grid">
+      {% for category in root_categories|slice:":4" %}
+        <div style="aspect-ratio:.79;background:var(--line);display:grid;place-items:center;font-size:11px;text-transform:uppercase;">{{ category.name }}</div>
+      {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:40px 0;opacity:.6;">Agrega categorías desde el panel administrativo para verlas aquí.</div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}

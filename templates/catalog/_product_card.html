@@ -1,0 +1,33 @@
+{% load humanize %}
+<article class="product-card">
+  <div class="product-image-wrap{% if not product.secondary_image %} no-hover-image{% endif %}">
+    <a class="product-image-link" href="{% url 'catalog:product_detail' product.slug %}">
+      {% with image=product.primary_image hover_image=product.secondary_image %}
+        {% if image %}
+          <img class="product-image base" src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" />
+        {% else %}
+          <img class="product-image base" src="https://ext.same-assets.com/2333917560/3016023437.jpeg" alt="{{ product.name }}" />
+        {% endif %}
+        {% if hover_image %}
+          <img class="product-image hover" src="{{ hover_image.image.url }}" alt="{{ hover_image.alt_text|default:product.name }}" />
+        {% endif %}
+      {% endwith %}
+    </a>
+    <span class="product-label">{{ product.category.name|lower }}</span>
+    {% if not product.is_purchasable %}
+      <span class="out-of-stock-flag">agotado</span>
+    {% endif %}
+    <a class="quick-add" href="{% url 'catalog:product_detail' product.slug %}">ver producto +</a>
+  </div>
+  <div class="product-meta">
+    <div class="product-flags">
+      <span>{% if product.is_purchasable %}disponible{% else %}sin stock{% endif %}</span>
+    </div>
+    <div class="name-row">
+      <h3><a href="{% url 'catalog:product_detail' product.slug %}">{{ product.name|lower }}</a></h3>
+      <span>${{ product.base_price|floatformat:2|intcomma }}</span>
+    </div>
+    <p>{{ product.short_description }}</p>
+    <a class="mobile-buy" href="{% url 'catalog:product_detail' product.slug %}">ver {{ product.name|lower }} — ${{ product.base_price|floatformat:2 }}</a>
+  </div>
+</article>

@@ -1,0 +1,22 @@
+{% extends "base/base.html" %}
+
+{% block title %}Crear cuenta — the weekend store{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>crear cuenta</h1>
+    <p class="subtitle">Regístrate como cliente de the weekend store.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        {% include "accounts/_form_field_helpers.html" %}
+      {% endfor %}
+      <button type="submit" class="btn-primary">crear cuenta</button>
+    </form>
+    <p class="auth-links">
+      ¿ya tienes cuenta? <a href="{% url 'accounts:login' %}">ingresar</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
