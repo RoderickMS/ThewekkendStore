@@ -1,0 +1,59 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}checkout — the weekend store{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>checkout</h1>
+
+  {% if reservations %}
+  <p class="search-note">
+    Tus productos están reservados hasta las {{ reservations.0.expires_at|time:"H:i" }}.
+    Pasado ese tiempo la reserva se libera automáticamente.
+  </p>
+  {% endif %}
+
+  <div class="account-section">
+    <h2>resumen</h2>
+    {% for item in items %}
+    <p>
+      {{ item.quantity }} × {{ item.variant.product.name|lower }} ({{ item.variant.label }})
+      — ${{ item.subtotal|floatformat:2|intcomma }}
+    </p>
+    {% endfor %}
+    <p><b>total: ${{ total|floatformat:2|intcomma }}</b></p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="account-section">
+      <h2>dirección de entrega</h2>
+      {% for address in addresses %}
+      <label class="address-card" style="display:flex;gap:12px;align-items:flex-start;">
+        <input type="radio" name="address_id" value="{{ address.pk }}"
+          {% if address.pk == selected_address_id %}checked{% endif %} />
+        <span>
+          <b>{{ address.full_name }}</b>{% if address.is_default %}<span class="badge">predeterminada</span>{% endif %}<br />
+          {{ address.line1 }}{% if address.line2 %}, {{ address.line2 }}{% endif %}<br />
+          {{ address.city }}{% if address.state %}, {{ address.state }}{% endif %} — {{ address.country }}
+        </span>
+      </label>
+      {% endfor %}
+
+      <label class="address-card" style="display:flex;gap:12px;align-items:center;">
+        <input type="radio" name="address_id" value="new" {% if address_form.errors or not addresses %}checked{% endif %} />
+        <span>usar una dirección nueva</span>
+      </label>
+      <div style="margin-top:12px;">
+        {% for field in address_form %}
+          {% include "accounts/_form_field_helpers.html" %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary" style="width:auto;">confirmar checkout</button>
+    <a href="{% url 'carts:detail' %}" class="btn-secondary">volver al carrito</a>
+  </form>
+</div>
+{% endblock %}

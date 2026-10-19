@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
+from apps.carts.services import merge_guest_cart_into_user
+
 from .forms import AddressForm, ProfileForm, RegisterForm
 from .models import Address
 
@@ -13,6 +15,13 @@ from .models import Address
 class WeekendStoreLoginView(LoginView):
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
+
+    def form_valid(self, form):
+        # La clave de sesión cambia al autenticar: se captura antes (M07).
+        guest_session_key = self.request.session.session_key
+        response = super().form_valid(form)
+        merge_guest_cart_into_user(guest_session_key, self.request.user)
+        return response
 
 
 class WeekendStoreLogoutView(LogoutView):
@@ -25,8 +34,10 @@ class RegisterView(CreateView):
     success_url = reverse_lazy("catalog:home")
 
     def form_valid(self, form):
+        guest_session_key = self.request.session.session_key
         response = super().form_valid(form)
         login(self.request, self.object)
+        merge_guest_cart_into_user(guest_session_key, self.object)
         messages.success(self.request, "¡Bienvenida/o a The Weekend Store!")
         return response
 

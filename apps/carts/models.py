@@ -45,6 +45,10 @@ class Cart(models.Model):
     def total(self):
         return sum((item.subtotal for item in self.items.all()), start=0)
 
+    @property
+    def total_items(self):
+        return sum(item.quantity for item in self.items.all())
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name="items", on_delete=models.CASCADE)

@@ -1,0 +1,61 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}carrito — the weekend store{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>carrito</h1>
+
+  {% if items %}
+  <div class="account-section">
+    {% for item in items %}
+    {% with variant=item.variant product=item.variant.product %}
+    <div class="address-card">
+      <div style="display:flex;gap:16px;align-items:center;">
+        {% if variant.image %}
+        <img src="{{ variant.image.url }}" alt="{{ product.name }}" style="width:72px;height:90px;object-fit:cover;" />
+        {% elif product.primary_image %}
+        <img src="{{ product.primary_image.image.url }}" alt="{{ product.name }}" style="width:72px;height:90px;object-fit:cover;" />
+        {% endif %}
+        <div>
+          <b><a href="{{ product.get_absolute_url }}">{{ product.name|lower }}</a></b><br />
+          {{ variant.label }}<br />
+          ${{ variant.price|floatformat:2|intcomma }} c/u
+          {% if not variant.is_active or not product.is_active %}
+            <br /><span class="badge">no disponible</span>
+          {% else %}
+            <br /><small>{{ item.available }} disponible(s)</small>
+          {% endif %}
+        </div>
+      </div>
+      <div class="address-actions">
+        <form method="post" action="{% url 'carts:update' item.pk %}" style="display:inline-flex;gap:8px;align-items:center;">
+          {% csrf_token %}
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="0" style="width:64px;" aria-label="Cantidad" />
+          <button type="submit" class="btn-secondary">actualizar</button>
+        </form>
+        <form method="post" action="{% url 'carts:remove' item.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn-secondary">eliminar</button>
+        </form>
+        <p style="margin:8px 0 0;"><b>${{ item.subtotal|floatformat:2|intcomma }}</b></p>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  <div class="account-section">
+    <h2>resumen</h2>
+    <p><b>total: ${{ total|floatformat:2|intcomma }}</b></p>
+    <a href="{% url 'carts:checkout' %}" class="btn-primary" style="width:auto;display:inline-block;">proceder al checkout</a>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>Tu carrito está vacío.</p>
+    <a href="{% url 'catalog:home' %}" class="btn-secondary">seguir comprando</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
