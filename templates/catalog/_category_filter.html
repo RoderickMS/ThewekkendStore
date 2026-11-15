@@ -1,0 +1,17 @@
+{% comment %}
+Filtro por categoría. Contexto: category_filter, clear_url, y opcionalmente
+query (búsqueda). Con JS se aplica al marcar; sin JS funciona con el botón.
+{% endcomment %}
+{% if category_filter.nodes %}
+<form class="category-filter" method="get" data-filter-form aria-label="Filtrar por categoría">
+  {% if query %}<input type="hidden" name="q" value="{{ query }}" />{% endif %}
+  <div class="filter-head">
+    <p class="eyebrow">filtrar por categoría</p>
+    {% if category_filter.active %}<a href="{{ clear_url }}" class="filter-clear">limpiar filtros</a>{% endif %}
+  </div>
+  <ul class="filter-list">
+    {% for node in category_filter.nodes %}{% include "catalog/_filter_node.html" %}{% endfor %}
+  </ul>
+  <button type="submit" class="btn-secondary filter-apply" data-filter-apply>aplicar</button>
+</form>
+{% endif %}

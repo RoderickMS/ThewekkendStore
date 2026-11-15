@@ -1,0 +1,9 @@
+<ol class="timeline">
+  {% for entry in history %}
+  <li>
+    <b>{{ entry.to_label|lower }}</b>
+    <span>{{ entry.created_at|date:"d/m/Y H:i" }}{% if entry.changed_by %} · {{ entry.changed_by }}{% endif %}</span>
+    <small>{{ entry.display_message }}</small>
+  </li>
+  {% endfor %}
+</ol>

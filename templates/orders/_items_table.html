@@ -1,0 +1,19 @@
+{% load humanize %}
+<table class="data-table">
+  <thead>
+    <tr><th>producto</th><th class="num">precio</th><th class="num">cant.</th><th class="num">subtotal</th></tr>
+  </thead>
+  <tbody>
+    {% for item in order.items.all %}
+    <tr>
+      <td>{{ item.product_name|lower }}{% if item.variant_label %}<br /><small>{{ item.variant_label }}</small>{% endif %}</td>
+      <td class="num">${{ item.unit_price|floatformat:2|intcomma }}</td>
+      <td class="num">{{ item.quantity }}</td>
+      <td class="num">${{ item.subtotal|floatformat:2|intcomma }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3">total</td><td class="num"><b>${{ order.total|floatformat:2|intcomma }}</b></td></tr>
+  </tfoot>
+</table>

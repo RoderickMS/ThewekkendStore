@@ -1,0 +1,50 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}pedidos — panel administrativo{% endblock %}
+
+{% block content %}
+<div class="panel-admin wide">
+  <p class="breadcrumbs"><a href="{% url 'catalog:panel_home' %}">← panel</a></p>
+  <h1>pedidos</h1>
+
+  <nav class="status-tabs" aria-label="Filtrar por estado">
+    <a href="{% url 'orders_panel:list' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="{% if not status %}is-active{% endif %}">todos <em>{{ total_count }}</em></a>
+    {% for value, label, count in status_tabs %}
+    <a href="?estado={{ value }}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if status == value %}is-active{% endif %}">{{ label|lower }} <em>{{ count }}</em></a>
+    {% endfor %}
+  </nav>
+
+  <form class="panel-search" method="get">
+    {% if status %}<input type="hidden" name="estado" value="{{ status }}" />{% endif %}
+    <input type="search" name="q" value="{{ query }}" placeholder="buscar por n.º de pedido, cliente o correo" aria-label="Buscar pedidos" />
+    <button type="submit" class="btn-secondary">buscar</button>
+  </form>
+
+  {% if page_obj.paginator.count %}
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr><th>pedido</th><th>cliente</th><th>fecha</th><th>estado</th><th class="num">artículos</th><th class="num">total</th><th>gestionar</th></tr>
+      </thead>
+      <tbody>
+        {% for order in page_obj %}
+        <tr>
+          <td><a href="{% url 'orders_panel:detail' order.number %}"><b>{{ order.number }}</b></a></td>
+          <td>{{ order.user }}<br /><small>{{ order.user.email }}</small></td>
+          <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+          <td>{% include "orders/_status.html" %}</td>
+          <td class="num">{{ order.item_count }}</td>
+          <td class="num">${{ order.total|floatformat:2|intcomma }}</td>
+          <td><a href="{% url 'orders_panel:detail' order.number %}" aria-label="Gestionar estado del pedido {{ order.number }}">cambiar estado</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "catalog/_pagination.html" with extra_query=extra_query %}
+  {% else %}
+  <div class="empty-state"><p>No hay pedidos con esos filtros.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

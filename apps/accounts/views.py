@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -8,6 +7,7 @@ from django.views.generic import CreateView
 
 from apps.carts.services import merge_guest_cart_into_user
 
+from .permissions import customer_required
 from .forms import AddressForm, ProfileForm, RegisterForm
 from .models import Address
 
@@ -42,7 +42,7 @@ class RegisterView(CreateView):
         return response
 
 
-@login_required
+@customer_required
 def profile(request):
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=request.user)
@@ -61,7 +61,7 @@ def profile(request):
     )
 
 
-@login_required
+@customer_required
 def address_create(request):
     if request.method == "POST":
         form = AddressForm(request.POST)
@@ -76,7 +76,7 @@ def address_create(request):
     return render(request, "accounts/address_form.html", {"form": form, "is_new": True})
 
 
-@login_required
+@customer_required
 def address_update(request, pk):
     address = get_object_or_404(Address, pk=pk, user=request.user)
     if request.method == "POST":
@@ -90,7 +90,7 @@ def address_update(request, pk):
     return render(request, "accounts/address_form.html", {"form": form, "is_new": False})
 
 
-@login_required
+@customer_required
 def address_delete(request, pk):
     address = get_object_or_404(Address, pk=pk, user=request.user)
     if request.method == "POST":

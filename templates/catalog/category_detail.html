@@ -4,20 +4,29 @@
 
 {% block content %}
 <div class="page-header">
-  <p class="breadcrumbs"><a href="{% url 'catalog:home' %}">inicio</a> / {{ category.name|lower }}</p>
+  <p class="breadcrumbs"><a href="{% url 'catalog:home' %}">inicio</a> / <a href="{% url 'catalog:shop' %}">tienda</a> / {{ category.name|lower }}</p>
   <h1>{{ category.name|lower }}</h1>
+  <p class="search-note">{{ page_obj.paginator.count }} producto{{ page_obj.paginator.count|pluralize }}</p>
 </div>
 
 <section class="products-section" style="padding-top:0;">
-  {% if products %}
+  {% include "catalog/_category_filter.html" %}
+
+  {% if page_obj.paginator.count %}
     <div class="product-grid">
-      {% for product in products %}
+      {% for product in page_obj %}
         {% include "catalog/_product_card.html" with product=product %}
       {% endfor %}
     </div>
+    {% include "catalog/_pagination.html" %}
   {% else %}
     <div class="empty-state">
-      <p>Todavía no hay productos activos en esta categoría.</p>
+      {% if category_filter.active %}
+        <p>No hay productos en las subcategorías elegidas.</p>
+        <a href="{{ clear_url }}" class="btn-secondary">limpiar filtros</a>
+      {% else %}
+        <p>Todavía no hay productos activos en esta categoría.</p>
+      {% endif %}
     </div>
   {% endif %}
 </section>
