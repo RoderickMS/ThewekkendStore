@@ -28,6 +28,11 @@ class Category(models.Model):
         verbose_name="categoría padre",
     )
     description = models.TextField(blank=True, verbose_name="descripción")
+    image = models.ImageField(
+        upload_to="categories/%Y/%m/",
+        blank=True,
+        verbose_name="imagen de fondo",
+    )
     is_active = models.BooleanField(default=True, verbose_name="activa")
     order = models.PositiveIntegerField(default=0, verbose_name="orden")
 
@@ -74,7 +79,7 @@ class Product(models.Model):
         help_text="Un producto inactivo no aparece en el catálogo ni puede comprarse.",
     )
     low_stock_threshold = models.PositiveIntegerField(
-        default=5, verbose_name="umbral de bajo stock (M21)"
+        default=5, verbose_name="umbral de bajo stock"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

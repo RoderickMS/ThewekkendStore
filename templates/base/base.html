@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#49322a" />
   <meta name="description" content="{% block meta_description %}The Weekend Store — comercio electrónico con catálogo, inventario y pedidos reales, con la estética editorial de Rhode.{% endblock %}" />
   <title>{% block title %}the weekend store{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20261110" />
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -24,21 +24,31 @@
   <header class="site-header {% block header_class %}on-light{% endblock %}">
     <button type="button" class="mobile-menu-trigger" data-open-panel="menu">menu</button>
     <nav class="nav-left" aria-label="Navegación principal">
-      {% for category in nav_categories %}
-        <a href="{% url 'catalog:category_detail' category.slug %}">{{ category.name|lower }}</a>
-      {% endfor %}
+      <a href="{% url 'catalog:shop' %}">tienda</a>
       <a href="{% url 'catalog:home' %}#about">nosotros</a>
     </nav>
     <a href="{% url 'catalog:home' %}" class="wordmark" aria-label="The Weekend Store — inicio">the weekend store</a>
     <nav class="nav-right" aria-label="Utilidades">
       <button type="button" data-open-panel="search">buscar</button>
       {% if user.is_authenticated %}
-        <a href="{% url 'accounts:profile' %}" class="desktop-only">{{ user.first_name|default:user.username }}</a>
-        {% if user.is_admin_role %}<a href="{% url 'catalog:panel_home' %}" class="desktop-only">panel</a>{% endif %}
+        <div class="account-menu desktop-only" data-account-menu>
+          <button type="button" class="account-menu-toggle" data-account-toggle aria-expanded="false" aria-haspopup="true">
+            {{ user.first_name|default:user.username }}
+          </button>
+          <div class="account-menu-panel" role="menu">
+            {% if user.is_admin_role %}
+              <a href="{% url 'catalog:panel_home' %}" role="menuitem">panel</a>
+            {% else %}
+              <a href="{% url 'accounts:profile' %}" role="menuitem">mi perfil</a>
+              <a href="{% url 'orders:list' %}" role="menuitem">mis pedidos</a>
+            {% endif %}
+            <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit" role="menuitem">cerrar sesión</button></form>
+          </div>
+        </div>
       {% else %}
         <a href="{% url 'accounts:login' %}" class="desktop-only">ingresar</a>
       {% endif %}
-      <a href="{% url 'carts:detail' %}">carrito</a>
+      <a href="{% url 'carts:detail' %}">carrito ({{ cart_count }})</a>
     </nav>
   </header>
 
@@ -74,7 +84,12 @@
       <div>
         <p>cuenta</p>
         {% if user.is_authenticated %}
-          <a href="{% url 'accounts:profile' %}">mi perfil</a>
+          {% if user.is_admin_role %}
+            <a href="{% url 'catalog:panel_home' %}">panel administrativo</a>
+          {% else %}
+            <a href="{% url 'accounts:profile' %}">mi perfil</a>
+            <a href="{% url 'orders:list' %}">mis pedidos</a>
+          {% endif %}
           <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit">cerrar sesión</button></form>
         {% else %}
           <a href="{% url 'accounts:login' %}">ingresar</a>
@@ -105,13 +120,15 @@
       </button>
     </div>
     <nav>
-      {% for category in nav_categories %}
-        <a href="{% url 'catalog:category_detail' category.slug %}" data-close-panel>{{ category.name|lower }} <span>{{ forloop.counter|stringformat:"02d" }}</span></a>
-      {% endfor %}
-      <a href="{% url 'carts:detail' %}" data-close-panel>carrito <span>·</span></a>
+      <a href="{% url 'catalog:shop' %}" data-close-panel>tienda <span>00</span></a>
+      <a href="{% url 'carts:detail' %}" data-close-panel>carrito <span>({{ cart_count }})</span></a>
       {% if user.is_authenticated %}
-        <a href="{% url 'accounts:profile' %}" data-close-panel>mi cuenta <span>·</span></a>
-        {% if user.is_admin_role %}<a href="{% url 'catalog:panel_home' %}" data-close-panel>panel admin <span>·</span></a>{% endif %}
+        {% if user.is_admin_role %}
+          <a href="{% url 'catalog:panel_home' %}" data-close-panel>panel admin <span>·</span></a>
+        {% else %}
+          <a href="{% url 'accounts:profile' %}" data-close-panel>mi cuenta <span>·</span></a>
+          <a href="{% url 'orders:list' %}" data-close-panel>mis pedidos <span>·</span></a>
+        {% endif %}
         <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit" data-close-panel>cerrar sesión <span>·</span></button></form>
       {% else %}
         <a href="{% url 'accounts:login' %}" data-close-panel>ingresar <span>·</span></a>

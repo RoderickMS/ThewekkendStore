@@ -1,0 +1,37 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}mis pedidos — the weekend store{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <h1>mis pedidos</h1>
+
+  <nav class="status-tabs" aria-label="Filtrar por estado">
+    <a href="{% url 'orders:list' %}" class="{% if not status %}is-active{% endif %}">todos</a>
+    {% for value, label in statuses %}
+    <a href="?estado={{ value }}" class="{% if status == value %}is-active{% endif %}">{{ label|lower }}</a>
+    {% endfor %}
+  </nav>
+
+  {% for order in page_obj %}
+  <a class="order-card" href="{% url 'orders:detail' order.number %}">
+    <div>
+      <b>{{ order.number }}</b> {% include "orders/_status.html" %}<br />
+      <small>{{ order.created_at|date:"d/m/Y H:i" }} · {{ order.items.all|length }} artículo{{ order.items.all|length|pluralize }}</small>
+      {% if order.is_payment_window_open %}
+      <br /><small>pago pendiente · vence en <span data-countdown="{{ order.expires_at|date:'c' }}" data-expired-text="vencido"></span></small>
+      {% endif %}
+    </div>
+    <div class="order-total">${{ order.total|floatformat:2|intcomma }}</div>
+  </a>
+  {% empty %}
+  <div class="empty-state">
+    <p>{% if status %}No tienes pedidos con ese estado.{% else %}Aún no has hecho pedidos.{% endif %}</p>
+    <a href="{% url 'catalog:shop' %}" class="btn-secondary">ir a la tienda</a>
+  </div>
+  {% endfor %}
+
+  {% include "catalog/_pagination.html" with extra_query=extra_query %}
+</div>
+{% endblock %}

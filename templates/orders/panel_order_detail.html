@@ -1,0 +1,84 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}pedido {{ order.number }} — panel administrativo{% endblock %}
+
+{% block content %}
+<div class="panel-admin wide">
+  <p class="breadcrumbs"><a href="{% url 'orders_panel:list' %}">← pedidos</a></p>
+  <h1>pedido {{ order.number }}</h1>
+  <p>{% include "orders/_status.html" %} <small>creado el {{ order.created_at|date:"d/m/Y H:i" }} · actualizado {{ order.updated_at|date:"d/m/Y H:i" }}</small></p>
+
+  <div class="detail-grid">
+    <div>
+      <div class="account-section">
+        <h2>artículos</h2>
+        {% include "orders/_items_table.html" %}
+      </div>
+
+      <div class="account-section">
+        <h2>historial de estados</h2>
+        {% include "orders/_timeline.html" %}
+      </div>
+    </div>
+
+    <aside>
+      <div class="account-section">
+        <h2>cambiar estado</h2>
+        {% if transitions %}
+        <form method="post" action="{% url 'orders_panel:status' order.number %}" class="status-form">
+          {% csrf_token %}
+          <label class="eyebrow" for="estado">nuevo estado</label>
+          <select id="estado" name="estado" required>
+            {% for value, label in transitions %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          </select>
+          <label class="eyebrow" for="nota">nota (opcional)</label>
+          <input id="nota" type="text" name="nota" maxlength="200" placeholder="p. ej. guía de envío" />
+          <button type="submit" class="btn-primary">actualizar estado</button>
+        </form>
+        {% if order.status == 'pendiente_pago' %}
+        <p class="search-note">Un pedido pendiente solo pasa a «pagado» cuando la pasarela confirma el pago.</p>
+        {% endif %}
+        {% else %}
+        <p class="search-note">«{{ order.get_status_display }}» es un estado final: no admite más cambios.</p>
+        {% endif %}
+      </div>
+
+      <div class="account-section">
+        <h2>cliente</h2>
+        <p class="side-text">
+          <b>{{ order.user }}</b> ({{ order.user.username }})<br />
+          {{ order.user.email }}{% if order.user.phone %}<br />{{ order.user.phone }}{% endif %}
+        </p>
+      </div>
+
+      <div class="account-section">
+        <h2>entrega</h2>
+        <p class="side-text">
+          <b>{{ order.shipping_name }}</b><br />
+          {{ order.shipping_address|linebreaksbr }}
+          {% if order.shipping_phone %}<br />{{ order.shipping_phone }}{% endif %}
+        </p>
+      </div>
+
+      <div class="account-section">
+        <h2>pago</h2>
+        {% if payment %}
+        <p class="side-text">
+          {{ payment.provider_label }} · <b>{{ payment.get_status_display|lower }}</b><br />
+          {{ payment.reference }}<br />
+          monto ${{ payment.amount|floatformat:2|intcomma }}<br />
+          {% if payment.paid_at %}pagado el {{ payment.paid_at|date:"d/m/Y H:i" }}<br />{% endif %}
+          {% if payment.detail %}<small>{{ payment.detail }}</small>{% endif %}
+        </p>
+        {% else %}
+        <p class="side-text">Sin intento de pago todavía.</p>
+        {% endif %}
+        {% if order.is_payment_window_open %}
+        <p class="side-text"><small>la reserva vence en <span data-countdown="{{ order.expires_at|date:'c' }}" data-expired-text="vencida"></span></small></p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

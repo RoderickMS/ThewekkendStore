@@ -33,8 +33,8 @@ class ProductVariantInline(admin.TabularInline):
         "is_active",
     )
     help_text = (
-        "El stock se controla por variante (M03). Movimientos de entrada/ajuste "
-        "deben registrarse desde Inventario para dejar trazabilidad (M04)."
+        "El stock se controla por variante. Movimientos de entrada/ajuste "
+        "deben registrarse desde Inventario para dejar trazabilidad."
     )
 
 
@@ -44,6 +44,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "parent")
     search_fields = ("name",)
     prepopulated_fields = {"slug": ("name",)}
+    fields = ("name", "slug", "parent", "description", "image", "is_active", "order")
     ordering = ("order", "name")
 
 

@@ -32,6 +32,19 @@ def admin_required(view_func):
     return _wrapped
 
 
+def customer_required(view_func):
+    """Restringe funciones de compra y cuenta a usuarios con rol Cliente."""
+
+    @wraps(view_func)
+    @login_required
+    def _wrapped(request, *args, **kwargs):
+        if _is_admin(request.user):
+            raise PermissionDenied("Esta función está disponible para clientes.")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
 class AdminRequiredMixin(UserPassesTestMixin):
     """Mixin para Class-Based Views administrativas."""
 

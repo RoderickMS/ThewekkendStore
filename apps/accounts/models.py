@@ -23,7 +23,7 @@ class User(AbstractUser):
         max_length=20,
         choices=Role.choices,
         default=Role.CLIENTE,
-        help_text="Diferencia Cliente de Administrador (M09).",
+        help_text="Diferencia Cliente de Administrador.",
     )
     phone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
 

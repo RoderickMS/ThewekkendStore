@@ -1,0 +1,65 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}pedido {{ order.number }} — the weekend store{% endblock %}
+
+{% block content %}
+<div class="account-page">
+  <p class="breadcrumbs"><a href="{% url 'orders:list' %}">← mis pedidos</a></p>
+  <h1>pedido {{ order.number }}</h1>
+  <p>{% include "orders/_status.html" %} <small>creado el {{ order.created_at|date:"d/m/Y H:i" }}</small></p>
+
+  {% if order.is_payment_window_open %}
+  <div class="reserve-note">
+    Este pedido espera tu pago. El stock está reservado por
+    <b data-countdown="{{ order.expires_at|date:'c' }}" data-expired-text="reserva vencida"></b>.
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <form method="post" action="{% url 'payments:start' order.number %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary" style="width:auto;">
+          {% if payment and payment.status != 'pendiente' %}reintentar pago con paypal{% else %}pagar con paypal{% endif %}
+        </button>
+      </form>
+      <form method="post" action="{% url 'orders:cancel' order.number %}"
+            onsubmit="return confirm('¿Cancelar este pedido? Se liberará el stock reservado.');">
+        {% csrf_token %}
+        <button type="submit" class="btn-secondary">cancelar pedido</button>
+      </form>
+    </div>
+  </div>
+  {% elif order.status == 'cancelado' %}
+  <p class="search-note">Este pedido fue cancelado. Si aún quieres los productos, vuelve a armar tu carrito.</p>
+  {% endif %}
+
+  <div class="account-section">
+    <h2>artículos</h2>
+    {% include "orders/_items_table.html" %}
+  </div>
+
+  <div class="account-section">
+    <h2>entrega</h2>
+    <p style="font-size:12px;line-height:1.7;margin:0;">
+      <b>{{ order.shipping_name }}</b><br />
+      {{ order.shipping_address|linebreaksbr }}
+      {% if order.shipping_phone %}<br />{{ order.shipping_phone }}{% endif %}
+    </p>
+  </div>
+
+  {% if payment %}
+  <div class="account-section">
+    <h2>pago</h2>
+    <p style="font-size:12px;line-height:1.7;margin:0;">
+      {{ payment.provider_label }} · <b>{{ payment.get_status_display|lower }}</b><br />
+      referencia {{ payment.reference }}<br />
+      {% if payment.paid_at %}pagado el {{ payment.paid_at|date:"d/m/Y H:i" }}<br />{% endif %}
+      {% if payment.detail %}<small>{{ payment.detail }}</small>{% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="account-section">
+    <h2>seguimiento</h2>
+    {% include "orders/_timeline.html" %}
+  </div>
+</div>
+{% endblock %}

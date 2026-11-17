@@ -7,7 +7,7 @@ cambia vía `apps.inventory.services.register_movement`.
 """
 from django.db import transaction
 
-from apps.inventory.services import get_available_stock
+from apps.inventory.services import get_available_stock, release_user_reservations
 
 from .models import Cart, CartItem
 
@@ -82,3 +82,6 @@ def merge_guest_cart_into_user(session_key, user):
         else:
             CartItem.objects.create(cart=user_cart, variant=variant, quantity=new_qty)
     guest_cart.delete()
+    # El carrito del usuario cambió: cualquier reserva de checkout previa ya
+    # no corresponde a su contenido.
+    release_user_reservations(user)

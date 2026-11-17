@@ -53,6 +53,28 @@
     if (event.key === "Escape") closeAllPanels();
   });
 
+  const accountMenu = document.querySelector("[data-account-menu]");
+  const accountToggle = accountMenu && accountMenu.querySelector("[data-account-toggle]");
+  function closeAccountMenu() {
+    if (!accountMenu || !accountToggle) return;
+    accountMenu.classList.remove("open");
+    accountToggle.setAttribute("aria-expanded", "false");
+  }
+  if (accountMenu && accountToggle) {
+    accountToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const open = !accountMenu.classList.contains("open");
+      accountMenu.classList.toggle("open", open);
+      accountToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.addEventListener("click", (event) => {
+      if (!accountMenu.contains(event.target)) closeAccountMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeAccountMenu();
+    });
+  }
+
   // Rail de productos (scroll horizontal con flechas)
   document.querySelectorAll("[data-rail]").forEach((rail) => {
     const id = rail.dataset.rail;
@@ -209,4 +231,38 @@
       syncAddForm(button);
     });
   });
+
+  // Filtro por categoría (Etapa 2): con JS se aplica al marcar una casilla;
+  // sin JS el formulario funciona igual con el botón "aplicar".
+  document.querySelectorAll("[data-filter-form]").forEach((form) => {
+    const apply = form.querySelector("[data-filter-apply]");
+    if (apply) apply.hidden = true;
+    form.addEventListener("change", (event) => {
+      if (event.target && event.target.matches("input[type='checkbox']")) form.submit();
+    });
+  });
+
+  // Cuenta regresiva de reservas de stock / ventana de pago (Etapa 3). Es solo
+  // informativa: el servidor es quien decide si una reserva sigue vigente.
+  const countdowns = Array.from(document.querySelectorAll("[data-countdown]"));
+  if (countdowns.length) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const tick = () => {
+      const now = Date.now();
+      countdowns.forEach((el) => {
+        const end = Date.parse(el.dataset.countdown);
+        if (Number.isNaN(end)) return;
+        const left = Math.max(0, Math.round((end - now) / 1000));
+        if (left === 0) {
+          el.textContent = el.dataset.expiredText || "vencido";
+          return;
+        }
+        const h = Math.floor(left / 3600);
+        const m = Math.floor((left % 3600) / 60);
+        el.textContent = h ? `${h}:${pad(m)}:${pad(left % 60)}` : `${pad(m)}:${pad(left % 60)}`;
+      });
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
 })();
