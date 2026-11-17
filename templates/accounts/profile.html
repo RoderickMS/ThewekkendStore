@@ -16,9 +16,11 @@
       {% endfor %}
       <button type="submit" class="btn-primary" style="width:auto;">guardar cambios</button>
     </form>
-    <p style="margin-top:16px;">
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <a href="{% url 'accounts:password_change' %}" class="btn-secondary">cambiar contraseña</a>
-    </p>
+      <a href="{% url 'orders:list' %}" class="btn-secondary">mis pedidos</a>
+      <form action="{% url 'accounts:logout' %}" method="post">{% csrf_token %}<button type="submit" class="btn-secondary">cerrar sesión</button></form>
+    </div>
   </div>
 
   <div class="account-section">

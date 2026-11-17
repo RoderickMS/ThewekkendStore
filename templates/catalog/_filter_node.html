@@ -1,0 +1,12 @@
+{% comment %} Nodo recursivo del filtro por categoría (ver apps/catalog/filters.py). {% endcomment %}
+<li class="filter-node">
+  <label class="filter-chip{% if node.selected %} is-active{% endif %}">
+    <input type="checkbox" name="cat" value="{{ node.slug }}"{% if node.selected %} checked{% endif %} />
+    <span>{{ node.name|lower }} <em>{{ node.count }}</em></span>
+  </label>
+  {% if node.children %}
+  <ul class="filter-children">
+    {% for child in node.children %}{% include "catalog/_filter_node.html" with node=child %}{% endfor %}
+  </ul>
+  {% endif %}
+</li>

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import StockMovement
+from .models import StockMovement, StockReservation
 from .services import register_movement
 
 
@@ -78,3 +78,10 @@ class StockMovementAdmin(admin.ModelAdmin):
         obj.stock_after = movement.stock_after
         obj.responsible = movement.responsible
         obj.created_at = movement.created_at
+
+
+@admin.register(StockReservation)
+class StockReservationAdmin(admin.ModelAdmin):
+    list_display = ("variant", "user", "quantity", "expires_at", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("variant__sku", "user__username")

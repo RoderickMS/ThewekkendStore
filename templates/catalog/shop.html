@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+
+{% block title %}tienda — the weekend store{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <p class="breadcrumbs"><a href="{% url 'catalog:home' %}">inicio</a> / tienda</p>
+  <h1>tienda</h1>
+  <p class="search-note">{{ page_obj.paginator.count }} producto{{ page_obj.paginator.count|pluralize }}</p>
+</div>
+
+<section class="products-section" style="padding-top:0;">
+  {% url 'catalog:shop' as clear_url %}
+  {% include "catalog/_category_filter.html" %}
+
+  {% if page_obj.paginator.count %}
+    <div class="product-grid">
+      {% for product in page_obj %}
+        {% include "catalog/_product_card.html" with product=product %}
+      {% endfor %}
+    </div>
+    {% include "catalog/_pagination.html" %}
+  {% else %}
+    <div class="empty-state">
+      <p>No hay productos en las categorías elegidas.</p>
+      {% if category_filter.active %}<a href="{{ clear_url }}" class="btn-secondary">limpiar filtros</a>{% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

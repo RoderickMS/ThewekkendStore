@@ -1,0 +1,45 @@
+{% extends "base/base.html" %}
+
+{% block title %}alertas de stock — panel administrativo{% endblock %}
+
+{% block content %}
+<div class="panel-admin wide">
+  <p class="breadcrumbs"><a href="{% url 'catalog:panel_home' %}">← panel</a></p>
+  <h1>alertas de bajo inventario</h1>
+  <p class="search-note">Variantes activas con stock igual o menor al umbral de su producto. Registra una entrada de inventario para reponerlas.</p>
+
+  <nav class="status-tabs" aria-label="Filtrar alertas">
+    <a href="{% url 'inventory:low_stock' %}" class="{% if not only_out %}is-active{% endif %}">todas <em>{{ total_low }}</em></a>
+    <a href="?agotados=1" class="{% if only_out %}is-active{% endif %}">agotadas <em>{{ total_out }}</em></a>
+  </nav>
+
+  {% if page_obj.paginator.count %}
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr><th>producto</th><th>variante</th><th>sku</th><th class="num">stock</th><th class="num">umbral</th><th>estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for variant in page_obj %}
+        <tr>
+          <td><a href="{% url 'admin:catalog_product_change' variant.product.pk %}">{{ variant.product.name|lower }}</a></td>
+          <td>{{ variant.label }}</td>
+          <td>{{ variant.sku }}</td>
+          <td class="num"><b>{{ variant.stock_quantity }}</b></td>
+          <td class="num">{{ variant.product.low_stock_threshold }}</td>
+          <td>
+            {% if variant.stock_quantity == 0 %}<span class="status-pill status-cancelado">agotado</span>
+            {% else %}<span class="status-pill status-pendiente_pago">bajo stock</span>{% endif %}
+          </td>
+          <td><a href="{% url 'admin:inventory_stockmovement_add' %}?variant={{ variant.pk }}" class="btn-secondary">reponer</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "catalog/_pagination.html" with extra_query=extra_query %}
+  {% else %}
+  <div class="empty-state"><p>Todo el inventario está por encima de su umbral.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -38,21 +38,21 @@
     <div class="variant-buttons" role="group" aria-label="Elegir variante">
       {% for variant in variants %}
       <button type="button"
-        class="variant-btn {% if variant == default_variant %}active{% endif %} {% if not variant.is_in_stock %}out{% endif %}"
+        class="variant-btn {% if variant == default_variant %}active{% endif %} {% if not variant.available_quantity %}out{% endif %}"
         data-variant-select data-variant-id="{{ variant.pk }}" data-sku="{{ variant.sku }}"
         data-price="{{ variant.price|floatformat:2 }}"
-        data-in-stock="{% if variant.is_in_stock %}true{% else %}false{% endif %}"
-        data-max-qty="{% if variant.is_in_stock %}{{ variant.stock_quantity }}{% else %}0{% endif %}"
-        data-stock-label="{% if variant.is_in_stock %}{{ variant.stock_quantity }} unidades disponibles{% else %}sin stock disponible{% endif %}"
-        data-stock-class="{% if not variant.is_in_stock %}out{% elif variant.is_low_stock %}low{% else %}ok{% endif %}"
+        data-in-stock="{% if variant.available_quantity %}true{% else %}false{% endif %}"
+        data-max-qty="{{ variant.available_quantity }}"
+        data-stock-label="{% if variant.available_quantity %}{{ variant.available_quantity }} unidades disponibles{% else %}sin stock disponible{% endif %}"
+        data-stock-class="{% if not variant.available_quantity %}out{% elif variant.available_quantity <= variant.product.low_stock_threshold %}low{% else %}ok{% endif %}"
         data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}"
         data-description="{{ variant.description }}"
         aria-pressed="{% if variant == default_variant %}true{% else %}false{% endif %}"
-        aria-disabled="{% if variant.is_in_stock %}false{% else %}true{% endif %}">
+        aria-disabled="{% if variant.available_quantity %}false{% else %}true{% endif %}">
         <span class="variant-btn-label">{{ variant.label }}</span>
         <span class="variant-btn-stock">
-          {% if variant.is_in_stock %}
-          {{ variant.stock_quantity }} disp.
+          {% if variant.available_quantity %}
+          {{ variant.available_quantity }} disp.
           {% else %}
           agotado
           {% endif %}
@@ -63,11 +63,11 @@
     {% endif %}
 
     <span
-      class="stock-flag {% if default_variant %}{% if not default_variant.is_in_stock %}out{% elif default_variant.is_low_stock %}low{% else %}ok{% endif %}{% else %}out{% endif %}"
+      class="stock-flag {% if default_variant %}{% if not default_variant.available_quantity %}out{% elif default_variant.available_quantity <= default_variant.product.low_stock_threshold %}low{% else %}ok{% endif %}{% else %}out{% endif %}"
       data-variant-stock>
       {% if default_variant %}
-      {% if default_variant.is_in_stock %}
-      {{ default_variant.stock_quantity }} unidades disponibles
+      {% if default_variant.available_quantity %}
+      {{ default_variant.available_quantity }} unidades disponibles
       {% else %}
       sin stock disponible
       {% endif %}
@@ -82,11 +82,11 @@
       <input type="hidden" name="variant_id" value="{{ default_variant.pk }}" data-variant-id-input />
       <label class="eyebrow" for="quantity">cantidad</label>
       <input id="quantity" type="number" name="quantity" value="1" min="1"
-        max="{% if default_variant.is_in_stock %}{{ default_variant.stock_quantity }}{% else %}1{% endif %}"
+        max="{% if default_variant.available_quantity %}{{ default_variant.available_quantity }}{% else %}1{% endif %}"
         inputmode="numeric" data-quantity-input />
       <button type="submit" class="btn-primary" style="width:auto;margin-top:22px;" data-add-button
         data-cart-ready="{% if cart_add_url %}true{% else %}false{% endif %}">
-        {% if default_variant.is_in_stock %}
+        {% if default_variant.available_quantity %}
         añadir al carrito
         {% else %}
         agotado

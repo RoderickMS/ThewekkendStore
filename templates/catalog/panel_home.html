@@ -6,10 +6,21 @@
 <div class="panel-admin">
   <h1>panel administrativo</h1>
   <p class="panel-note" style="text-transform:none;">
-    Hola {{ user.first_name|default:user.username }} — esta pantalla solo es
-    visible para usuarios con rol Administrador (M09/T05). El dashboard
-    completo (ventas, pedidos, bajo stock) llega en la Etapa 4 (M20).
+    Hola Admin
   </p>
+
+  <h2 class="panel-subtitle">pedidos e inventario</h2>
+  <div class="stat-grid">
+    <a class="stat-card" href="{% url 'orders_panel:list' %}?estado=pagado"><b>{{ order_stats.to_prepare }}</b><span>pagados por preparar</span></a>
+    <a class="stat-card" href="{% url 'orders_panel:list' %}?estado=pendiente_pago"><b>{{ order_stats.pending_payment }}</b><span>pendientes de pago</span></a>
+    <a class="stat-card" href="{% url 'inventory:low_stock' %}"><b>{{ order_stats.low_stock }}</b><span>variantes con bajo stock</span></a>
+  </div>
+  <p style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="{% url 'orders_panel:list' %}" class="btn-secondary">ver todos los pedidos ({{ order_stats.total }})</a>
+    <a href="{% url 'inventory:low_stock' %}" class="btn-secondary">alertas de stock</a>
+  </p>
+
+  <h2 class="panel-subtitle">catálogo</h2>
   <div class="stat-grid">
     <div class="stat-card"><b>{{ stats.total_categories }}</b><span>categorías</span></div>
     <div class="stat-card"><b>{{ stats.total_products }}</b><span>productos</span></div>

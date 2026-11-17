@@ -1,4 +1,5 @@
 
+import sys
 from pathlib import Path
 
 import environ
@@ -63,6 +64,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.catalog.context_processors.storefront_nav",
+                "apps.carts.context_processors.cart_summary",
             ],
         },
     },
@@ -74,17 +76,29 @@ ASGI_APPLICATION = "config.asgi.application"
 
 # --- Base de datos: PostgreSQL ------------------------------------
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="the_weekend_store"),
-        "USER": env("POSTGRES_USER", default="weekend_store_user"),
-        "PASSWORD": env("POSTGRES_PASSWORD", default="weekend_store_pass"),
-        "HOST": env("POSTGRES_HOST", default="127.0.0.1"),
-        "PORT": env("POSTGRES_PORT", default="5432"),
-        "CONN_MAX_AGE": 60,
+# PostgreSQL es la base oficial (T02/T03) y la única donde el bloqueo de
+# filas de la reserva de stock funciona de verdad. Para desarrollar sin
+# PostgreSQL instalado se puede poner DJANGO_DB_ENGINE=sqlite en el .env
+# (el bloqueo concurrente no se prueba en SQLite).
+if env("DJANGO_DB_ENGINE", default="postgresql") == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_DB", default="the_weekend_store"),
+            "USER": env("POSTGRES_USER", default="weekend_store_user"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default="weekend_store_pass"),
+            "HOST": env("POSTGRES_HOST", default="127.0.0.1"),
+            "PORT": env("POSTGRES_PORT", default="5432"),
+            "CONN_MAX_AGE": 60,
+        }
+    }
 
 
 # --- Usuario personalizado y autenticación ------------------------
@@ -116,9 +130,16 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# El almacenamiento con manifiesto exige `collectstatic`; en las pruebas
+# (`manage.py test`) se usa el almacenamiento simple para no depender de él.
+_STATICFILES_BACKEND = (
+    "django.contrib.staticfiles.storage.StaticFilesStorage"
+    if "test" in sys.argv
+    else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": _STATICFILES_BACKEND,
     },
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -135,3 +156,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@theweekendstore.local")
+
+
+# --- Pedidos y pagos (Etapa 3) -------------------------------------------------
+
+# Único método de pago: PayPal Sandbox. No existe una alternativa local.
+PAYMENT_GATEWAY = "paypal_sandbox"
+
+# Minutos que se mantiene reservado el stock de un pedido pendiente de pago.
+PAYMENT_WINDOW_MINUTES = env.int("PAYMENT_WINDOW_MINUTES", default=15)
+
+# Credenciales del equipo, NUNCA las del proyecto de referencia. Solo Sandbox.
+PAYPAL_ENV = env("PAYPAL_ENV", default="sandbox")
+PAYPAL_CLIENT_ID = env("PAYPAL_CLIENT_ID", default="")
+PAYPAL_CLIENT_SECRET = env("PAYPAL_CLIENT_SECRET", default="")
+PAYPAL_RETURN_BASE_URL = env("PAYPAL_RETURN_BASE_URL", default="http://127.0.0.1:8000")

@@ -6,8 +6,7 @@ catálogo, inventario, roles y control de stock en servidor.
 
 Este proyecto sigue el plan pactado en la "Respuesta del equipo a la
 solicitud de cambio de requerimientos" (MoSCoW, matriz de impacto y orden
-de implementación por etapas). **Este repositorio implementa la Etapa 1
-completa.**
+de implementación por etapas). **Este repositorio implementa las Etapas 1, 2 y 3.**
 
 ## Estado del alcance
 
@@ -31,7 +30,32 @@ su lógica de negocio y vistas se implementan en las etapas siguientes:
 - **Etapa 3** (Pedidos y pagos): M14+M16, M15, M17, M18, M19, M21.
 - **Etapa 4** (Administración, pruebas y extras): M20, M22, T08–T09, S01/S02/S04/S06, Could Have.
 
-## Cómo funciona el panel administrativo (Etapa 1)
+### Implementado (Etapa 3 — Pedidos y pagos)
+
+| # | Requisito | Dónde |
+|---|-----------|-------|
+| M14 + M16 | Pedido con copia de producto/precio/dirección y pago con la **pasarela de pago local** (aprobar / rechazar / cancelar, reintento) | `apps/orders/services.py`, `apps/payments/` |
+| M15 | Estados con transiciones validadas e historial | `Order.VALID_TRANSITIONS`, `change_status` |
+| M17 | El stock se descuenta solo al confirmarse el pago (idempotente y atómico); cancelar un pedido pagado devuelve stock y reembolsa; pedidos sin pago expiran y liberan la reserva | `apps/payments/services.py` |
+| M18 | Historial del cliente (`/pedidos/`) | `apps/orders/views.py` |
+| M19 | Detalle administrativo y cambio de estado (`/panel/pedidos/`) | idem |
+| M21 | Alertas de bajo inventario (`/panel/stock/`) + correo al cruzar el umbral | `apps/inventory/` |
+
+Flujo: carrito → checkout (reserva + dirección) → pedido pendiente → pasarela local de
+PayPal → pedido pagado. La ventana de pago es `PAYMENT_WINDOW_MINUTES` (15 por
+defecto). Para expirar pedidos sin visitas, programa
+`python manage.py expire_pending_orders` cada pocos minutos.
+
+### Correcciones a la Etapa 2
+
+- **Reserva temporal y validación concurrente (M13/T04):** `reserve_cart` bloquea las
+  variantes por pk (`select_for_update`), es idempotente (recargar no renueva la
+  reserva), se libera al cambiar el carrito y las reservas de pedido duran la
+  ventana de pago. Probado con hilos reales en PostgreSQL.
+- **Filtros por categoría:** tienda (`/tienda/`), categoría (todas las
+  subcategorías) y búsqueda, con contadores y paginación que conserva filtros.
+
+## Cómo funciona el panel administrativo
 
 Se usa el **admin de Django** (personalizado) como panel administrativo:
 ya exige `is_staff=True` (que solo tienen los usuarios con
@@ -90,6 +114,7 @@ superusuarios ya tienen acceso total de todas formas gracias a
 
 ```bash
 python manage.py runserver
+python manage.py test apps   # pruebas (la concurrencia real requiere PostgreSQL)
 ```
 
 - Tienda: <http://127.0.0.1:8000/>

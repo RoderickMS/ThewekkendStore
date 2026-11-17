@@ -10,6 +10,7 @@ sincronizados.
 """
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class StockMovement(models.Model):
@@ -53,3 +54,58 @@ class StockMovement(models.Model):
 
     def __str__(self):
         return f"{self.get_movement_type_display()} ({self.quantity:+d}) — {self.variant}"
+
+
+class StockReservation(models.Model):
+    """Reserva temporal de stock (M13/T04).
+
+    No descuenta `ProductVariant.stock_quantity`: solo reduce el stock
+    *disponible* (stock - reservas vigentes) mientras dura la reserva, para
+    que dos clientes no puedan pagar la misma última unidad. El descuento
+    real ocurre únicamente vía `register_movement`, al confirmarse el pago
+    (M17).
+
+    Hay dos tipos: las de *checkout* (`order` vacío, se crean al entrar al
+    checkout y se liberan si cambia el carrito) y las ligadas a un pedido
+    pendiente de pago (`order` informado, duran la ventana de pago).
+    """
+
+    variant = models.ForeignKey(
+        "catalog.ProductVariant",
+        related_name="reservations",
+        on_delete=models.CASCADE,
+        verbose_name="variante",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="stock_reservations",
+        on_delete=models.CASCADE,
+        verbose_name="usuario",
+    )
+    order = models.ForeignKey(
+        "orders.Order",
+        null=True,
+        blank=True,
+        related_name="reservations",
+        on_delete=models.CASCADE,
+        verbose_name="pedido",
+    )
+    quantity = models.PositiveIntegerField(verbose_name="cantidad")
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True, verbose_name="expira")
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name="activa")
+
+    class Meta:
+        verbose_name = "reserva de stock"
+        verbose_name_plural = "reservas de stock"
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(quantity__gt=0), name="reservation_quantity_positive")
+        ]
+
+    def __str__(self):
+        return f"Reserva {self.quantity} x {self.variant} ({self.user})"
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at

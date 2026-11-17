@@ -23,6 +23,7 @@
         <p>Escribe al menos {{ min_length }} caracteres para buscar.</p>
     </div>
     {% elif page_obj %}
+    {% include "catalog/_category_filter.html" %}
     {% if page_obj.paginator.count %}
     <div class="product-grid">
         {% for product in page_obj %}
@@ -30,20 +31,11 @@
         {% endfor %}
     </div>
 
-    {% if page_obj.has_other_pages %}
-    <nav class="pagination" aria-label="Paginación">
-        {% if page_obj.has_previous %}
-        <a href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">← anterior</a>
-        {% endif %}
-        <span>página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-        {% if page_obj.has_next %}
-        <a href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">siguiente →</a>
-        {% endif %}
-    </nav>
-    {% endif %}
+    {% include "catalog/_pagination.html" %}
     {% else %}
     <div class="empty-state">
-        <p>No encontramos productos para “{{ query }}”. Prueba con otra palabra o explora las categorías del menú.</p>
+        <p>No encontramos productos para “{{ query }}”{% if category_filter.active %} en las categorías elegidas{% endif %}. Prueba con otra palabra o explora las categorías del menú.</p>
+        {% if category_filter.active %}<a href="{{ clear_url }}" class="btn-secondary">limpiar filtros</a>{% endif %}
     </div>
     {% endif %}
     {% else %}
